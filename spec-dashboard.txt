@@ -1,0 +1,64 @@
+SPEC PRINCIPAL — Sistema Universal de Leitura → Dashboards (SaaS)
+
+1. Visão Geral
+
+Plataforma SaaS que recebe arquivos de qualquer natureza (dados, texto, imagem ou combinações) e transforma seu conteúdo em dashboards visuais profissionais e objetivos, reduzindo o esforço manual de estruturação de relatórios e melhorando a compreensão da informação.
+
+2. Proposta de Valor
+Usuário sobe um arquivo → sistema identifica o tipo → extrai dados relevantes → gera visualização pronta, sem necessidade de configurar planilhas ou gráficos manualmente.
+Diferencial: cobertura ampla de formatos com pipeline determinístico (previsível, auditável, sem "caixa preta" de IA generativa).
+3. Escopo por Fase
+
+Fase 1 (MVP)
+
+Ingestão: xlsx, csv (dados tabulares) — maturidade de parsing mais alta e valor mais rápido de entregar.
+Ingestão: pdf/docx de texto estruturado (tabelas, listas).
+Dashboard engine básico: 4-5 tipos de gráfico (barras, linha, pizza, KPI cards, tabela dinâmica).
+
+Fase 2
+
+Ingestão de imagens com OCR (fotos de documentos, prints de planilha, gráficos escaneados).
+Templates de dashboard por segmento (financeiro, qualidade, vendas, etc.)
+
+Fase 3
+
+Combinação multi-arquivo (cruzar dados de fontes diferentes num único dashboard).
+Exportação (PDF, PNG, embed) e compartilhamento.
+
+
+4. Arquitetura em Camadas
+
+[1] Ingestão de Arquivos
+     → upload, detecção de tipo (MIME + extensão), fila de processamento
+
+[2] Módulos de Parsing (um por tipo de arquivo)
+     → Parser Tabular (xlsx/csv)
+     → Parser Documento (pdf/docx)
+     → Parser Imagem (OCR + detecção de tabela/gráfico)
+
+[3] Normalização de Dados
+     → converte a saída de qualquer parser num modelo de dados comum
+        (ex: schema genérico { categoria, valor, data, metadados })
+
+[4] Motor de Geração de Dashboard
+     → regras de mapeamento: tipo de dado → tipo de gráfico recomendado
+     → engine de renderização (ex: Chart.js/Recharts)
+
+[5] Camada de Apresentação (Frontend)
+     → dashboard interativo, customização, exportação
+
+5. Requisitos Funcionais (essenciais)
+Upload multi-formato com validação de tipo/tamanho.
+Preview do arquivo antes do processamento.
+Detecção automática de estrutura de dados (cabeçalhos, tipos de coluna).
+Geração automática de sugestão de dashboard + edição manual pelo usuário.
+Histórico de arquivos processados por usuário/conta.
+6. Requisitos Não-Funcionais (por ser SaaS)
+Multi-tenancy: isolamento de dados por conta/cliente.
+Segurança: arquivos sensíveis (financeiro, PII) → criptografia em repouso, retenção configurável.
+Escalabilidade: processamento assíncrono (fila) pra arquivos grandes.
+Observabilidade: log de cada etapa do pipeline pra debug (essencial dado que não é IA — precisa ser auditável).
+7. Riscos Técnicos Principais
+Parsers tradicionais são frágeis a variações de formato (ex: sua própria experiência com o SGQ — cabeçalhos duplicados, blocos inconsistentes). Isso tende a se multiplicar com "qualquer arquivo".
+OCR sem IA tem taxa de erro maior em imagens de baixa qualidade — precisa de fallback (ex: usuário corrige manualmente).
+Escopo "qualquer modelo de arquivo" é abrangente — recomendo tratar como visão de longo prazo, não meta do MVP.
